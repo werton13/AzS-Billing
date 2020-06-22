@@ -46,3 +46,11 @@ do
 
 
 done
+
+	 az storage blob upload \
+	    --account-name $SA_NAME \
+	    --container-name $SA_CONTAINER_NAME \
+	    --name summary.txt \
+	    --file summary.txt \
+        --auth-mode key \
+	    --account-key "$SA_KEY"
