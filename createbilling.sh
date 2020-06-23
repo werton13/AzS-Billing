@@ -7,6 +7,10 @@
 # we creating this ENV variables to let them be available from SQL request files
 export START_BILL_DATE="$(date +%Y)-$(date -d "$date - 1 month" +%m)-25 16:00:00"
 export END_BILL_DATE="$(date +%Y-%m-25) 18:00:00"
+export CURRENT_MONTH="$(date +%B)"
+
+# Here we get total cost
+sed '$d' <(sed '1,2d' <(sqlcmd -m 1 -S "$SQL_IP,$SQL_TCPPORT" -d "$SQL_DB" -U "$SQL_USER" -P "$SQL_PWD" -V 1 -i ./gettotalcost.sql  -W -w 999 -s";")) > AzureStackTotalCost-$CURRENT_MONTH.txt
 
 # Here we get active subscriptions list from database, to place it in array at  iterate through each
 sublist=($(sed '/^$/d' <(sed '$d' <(sed '1,2d' <(sqlcmd -m 1 -S "$SQL_IP,$SQL_TCPPORT" -d "$SQL_DB" -U "$SQL_USER" -P "$SQL_PWD" -V 1 -i ./getsubsclist.sql  -W -w 999 -s";")))))
@@ -29,7 +33,7 @@ do
 	 -U "$SQL_USER" -P "$SQL_PWD" -i ./getsinglebillv2.sql  -W -w 999 -s";"  -o "temporary.csv" \
 	 && sed '$d' <(sed '2d' <(sed -n '/ForisCodeId/,$p'  <(cat temporary.csv))) >$REPORTPATH/AzureStackBillingDetails$(date +%F).csv  \
 	 && sed '2G' <(sed -n '/Bill Period/,/ForisCodeId/p' temporary.csv | grep 'Bill\|Total\|Resource type') >$REPORTPATH/AzureStackUsageBillInfo$(date +%F).txt \
-	 && grep "Total" temporary.csv >> summary.txt
+	 && grep "Total" temporary.csv >> AzureStackTotalCost-$CURRENT_MONTH.txt
 	
 	# here we zip this folder to prepare uploat to the Azure Stack Blob storage 
 	zip -r $FOLDERNAME.zip $FOLDERNAME
@@ -50,7 +54,7 @@ done
 	 az storage blob upload \
 	    --account-name $SA_NAME \
 	    --container-name $SA_CONTAINER_NAME \
-	    --name summary.txt \
-	    --file summary.txt \
+	    --name AzureStackTotalCost-$CURRENT_MONTH.txt \
+	    --file AzureStackTotalCost-$CURRENT_MONTH.txt \
         --auth-mode key \
 	    --account-key "$SA_KEY"
