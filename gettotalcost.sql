@@ -1,6 +1,6 @@
 SELECT 
-'Azure Stack total usage cost for $(CURRENT_MONTH): '+ CONVERT (varchar(12),sum(su.Quantity*p.[PricePerUnit])) + ' Rub' as SummaryCost
-
+N'Azure Stack total usage cost for $(CURRENT_MONTH): '+ CONVERT (varchar(12),sum(su.Quantity*p.[PricePerUnit])) + ' Rub' as SummaryCost
+/* prepend 'N' before text with cyrillic in select-*/
 from dbo.v_SubscriberUsage su
 join dbo.v_Prices p on su.MeterName = p.MeterName and su.Info1 = p.Counter
 join dbo.v_ForisClients c on su.SubscriptionId = c.SubscriptionId
