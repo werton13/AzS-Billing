@@ -1,13 +1,28 @@
 #!/bin/bash
 
-# version 6.0
+# version 6.1
 
 # Here we set Start & End billing period, each billing period here start from 25 of previous month
 # each billing period start from 16:00:00 and end at 18:00:00 - 25th of current month
 # we creating this ENV variables to let them be available from SQL request files
-export START_BILL_DATE="$(date +%Y)-$(date -d "$date - 1 month" +%m)-25 16:00:00"
-export END_BILL_DATE="$(date +%Y-%m-25) 18:00:00"
+
+#export START_BILL_DATE="$(date +%Y)-$(date -d "$date - 1 month" +%m)-26 00:00:00"
+#export END_BILL_DATE="$(date +%Y-%m-26) 00:00:00"
 export CURRENT_MONTH="$(date +%B)"
+
+	if [ $(date +%m) -eq 01 ]
+	then
+	        export START_BILL_DATE="$(date -d "$date - 1 year" +%Y)-$(date -d "$date - 1 month" +%m)-26 00:00:00"
+
+
+	else
+	       export START_BILL_DATE="$(date +%Y)-$(date -d "$date - 1 month" +%m)-26 00:00:00"
+
+
+	fi
+
+	
+	export END_BILL_DATE="$(date +%Y-%m-26) 00:00:00"
 
 # Here we get total cost
 sed '$d' <(sed '1,2d' <(sqlcmd -m 1 -S "$SQL_IP,$SQL_TCPPORT" -d "$SQL_DB" -U "$SQL_USER" -P "$SQL_PWD" -V 1 -i ./gettotalcost.sql  -W -w 999 -s";")) > AzureStackTotalCost-$CURRENT_MONTH.txt
