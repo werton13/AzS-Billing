@@ -8,6 +8,7 @@
 
 #export START_BILL_DATE="$(date +%Y)-$(date -d "$date - 1 month" +%m)-26 00:00:00"
 #export END_BILL_DATE="$(date +%Y-%m-26) 00:00:00"
+#change below
 export CURRENT_MONTH="$(date +%B)"
 
 	if [ $(date +%m) -eq 01 ]
