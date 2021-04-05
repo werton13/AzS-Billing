@@ -3,13 +3,14 @@ DECLARE @CustomerName nvarchar(255)
 set @CustomerName = (select DisplayName from dbo.v_Subscriptions where SubscriptionId = '$(BILL_SUBSCRIPTION_ID)' )
 INSERT INTO @tempbill
 SELECT 
-      c.[ForisCodeId]
-      ,su.[UsageStartTime]
+      
+       su.[UsageStartTime]
       ,su.[UsageEndTime]
+      ,c.[ForisCodeId]
       ,su.[SubscriptionId]
  /*     ,su.[MeterId] */
 	  ,meters.[MeterName]
-	  ,p.Category
+/*    ,p.Category */
 	  ,d.[MeterDesc]
 	  ,su.[Info1]
 	  ,su.[ResourceId]
