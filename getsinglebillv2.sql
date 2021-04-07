@@ -19,66 +19,25 @@ SELECT
 	  ,su.Quantity*p.PricePerUnit as 'Base Cost'
 	/*Here we comparing dbo.v_Prices category column with all hardcoded categorys and if match - we compute a 'Personal Discont' column value here as varchar  */  
 	  ,(case 
-			 when p.category like 'Compute' then ( 										
-													
-															
-															CONVERT(varchar(10),(select (1 -(select [compute] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'
-																														
-												 )
-			 when p.category like 'Storage' then (
-															CONVERT(varchar(10),(select (1 -(select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'
-												 )
-			 when p.category like 'WebApp'  then (
-															CONVERT(varchar(10),(select (1 -(select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'
-												)									    
-			 when p.category like 'EventHub'  then (
-															CONVERT(varchar(10),(select (1 -(select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'
-													)
-
-			 when p.category like 'Database'  then (
-															CONVERT(varchar(10),(select (1 -(select [Database] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'
-												    )
-			 when p.category like 'IP Address'  then (
-															CONVERT(varchar(10),(select (1 -(select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'
-												    )												    
-
-			 end ) as 'Personal Discont'
+			 when p.category like 'Compute' then ( CONVERT(varchar(10),(select (1 -(select [compute] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+			 when p.category like 'Storage' then ( CONVERT(varchar(10),(select (1 -(select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+			 when p.category like 'WebApp'  then ( CONVERT(varchar(10),(select (1 -(select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'  )									    
+			 when p.category like 'EventHub'  then ( CONVERT(varchar(10),(select (1 -(select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+			 when p.category like 'Database'  then ( CONVERT(varchar(10),(select (1 -(select [Database] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+			 when p.category like 'IP Address'  then ( CONVERT(varchar(10),(select (1 -(select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+		end ) as 'Personal Discont'
 	/*Here we comparing dbo.v_Prices category column with all hardcoded categorys and if match - we compute a 'Personal Discont' * Price*Quantity as a Final Cost after Discont  */  
     
     ,(case 
-			 when p.category like 'Compute' then ( 										
-															
-															
-															(select (select [compute] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) 
-																														
-												 )
-			 when p.category like 'Storage' then (
-															(select (select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) 
-												 )
-			 when p.category like 'WebApp'  then (
-															(select (select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) 
-												)									    
-			 when p.category like 'EventHub'  then (
-															(select (select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) 
-															
-												   )
-
-			 when p.category like 'Database'  then (
-															(select (select [Database] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) 
-															
-												    )
-			 when p.category like 'IP Address'  then (
-															(select (select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) 
-															
-												    )												    
-
-			 end ) as 'Final Cost'
+			 when p.category like 'Compute' then ( 	(select (select [compute] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+			 when p.category like 'Storage' then (  (select (select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+			 when p.category like 'WebApp'  then (	(select (select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )									    
+			 when p.category like 'EventHub'  then ( (select (select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
+             when p.category like 'Database'  then ( (select (select [Database] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+			 when p.category like 'IP Address'  then ( (select (select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
+	 end ) as 'Final Cost'
 
 
-	  /* select  ('q' + cast ((select 1 -(select [compute] from Disconts where ForisCodeId  = '1111111119')) as varchar(12)) ) */
-	  /*,su.Quantity*p.[PricePerUnit]  as Cost*/
-	  /*,discont.[compute]*/
-	  /*,Discont.[@category]*/
 
 from dbo.v_SubscriberUsage su
 join dbo.v_Prices p on su.MeterName = p.MeterName and su.Info1 = p.Counter /*join dbo.v_Prices to extend table with Prices by SKU */
