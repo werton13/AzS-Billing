@@ -20,10 +20,9 @@ DECLARE @CustomerName nvarchar(255)
 set @CustomerName = (select DisplayName from dbo.v_Subscriptions where SubscriptionId = '$(BILL_SUBSCRIPTION_ID)' )
 INSERT INTO @tempbill
 SELECT 
-      
-       su.[UsageStartTime]
+       c.[ForisCodeId] /*this column should ne first*/
+      ,su.[UsageStartTime]
       ,su.[UsageEndTime]
-      ,c.[ForisCodeId]
       ,su.[SubscriptionId]
       ,su.[MeterId]
 	  ,meters.[MeterName]
@@ -87,7 +86,7 @@ WHILE @UniquMetersCount  > 0
     BEGIN
         FETCH  FROM index_umeters INTO @UMeterID
 		set @MeterName = (select MeterName FROM dbo.v_Meters WHERE MeterId = @UMeterID)
-		SELECT 'Resource type: '+ @MeterName +' Usage cost: ' + CONVERT(varchar(12),sum(cost)) +' Rub' as MeterCost FROM @tempbill WHERE MeterId like @UMeterID 
+		SELECT 'Resource type: '+ @MeterName +' Usage cost: ' + CONVERT(varchar(12),sum([Final Cost])) +' Rub' as MeterCost FROM @tempbill WHERE MeterId like @UMeterID 
 		GROUP BY MeterId
 		SET @UniquMetersCount = @UniquMetersCount - 1;
     END;
@@ -103,10 +102,10 @@ select /*top (5)*/
 	  ,MeterDesc
       ,ResourceId
       ,format(Quantity,'N16','de-de') as Quantity
-      ,format([GPL Price],'N7','de-de') as [GPL Price]
-      ,format([Base Cost],'N16','de-de') as [Base Cost]
+      ,format([GPL Price],'N7','de-de') as 'GPL Price'
+      ,format([Base Cost],'N16','de-de') as 'Base Cost'
 	  ,[Personal Discont]
-	  ,format([Final Cost],'N16','de-de') as [Final Cost]
+	  ,format([Final Cost],'N16','de-de') as 'Final Cost'
 	
 from @tempbill
 order by UsageStartTime
