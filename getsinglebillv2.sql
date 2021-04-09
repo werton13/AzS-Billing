@@ -69,7 +69,7 @@ and su.UsageStartTime >= '$(START_BILL_DATE)'
 and su.UsageEndTime <= '$(END_BILL_DATE)'
 
 select 'Bill Period from: '+ CONVERT(varchar(12), MIN(UsageStartTime)) +' till: ' + CONVERT(varchar(12),MAX(UsageEndTime))  from @tempbill 
-select 'Total usage cost for ' + @CustomerName+': '+ CONVERT(varchar(12), sum([Final Cost]))+ ' Rub' from @tempbill
+select 'Total usage cost for ' + @CustomerName +' ['+ (select DISTINCT (ForisCodeId) from @tempbill) +'] : '+ CONVERT(varchar(12), sum([Final Cost]))+ ' Rub' from @tempbill
 
 DECLARE @UMeterID nvarchar(255)
 DECLARE @MeterName nvarchar(50)
