@@ -44,12 +44,15 @@ do
 	REPORTPATH=$(pwd)
 	cd ..
 
-    #  in this block we creating two files -1) with information about this Bill 2) with detais usage information and place these file to the folder prepared in the previous step
+    #  in this block we creating two files: 
+	#   1) with information about this Bill 
+	#   2) with detais usage information and place these file to the folder prepared in the previous step
 	sqlcmd -m 1 -S "$SQL_IP,$SQL_TCPPORT" -d "$SQL_DB" \
 	 -U "$SQL_USER" -P "$SQL_PWD" -i ./getsinglebillv2.sql  -W -w 999 -s";"  -o "temporary.csv" \
 	 && sed '$d' <(sed '2d' <(sed -n '/ForisCodeId/,$p'  <(cat temporary.csv))) >$REPORTPATH/AzureStackBillingDetails$(date +%F).csv  \
 	 && sed '2G' <(sed -n '/Bill Period/,/ForisCodeId/p' temporary.csv | grep 'Bill\|Total\|Resource type') >$REPORTPATH/AzureStackUsageBillInfo$(date +%F).txt \
-	 && grep "Total" temporary.csv >> AzureStackTotalCost-$CURRENT_MONTH.txt
+	 && grep "Total usage cost for" temporary.csv >> AzureStackTotalCost-$CURRENT_MONTH.txt # Grep "Total usage cost for" to extract distinct total information for each customer 
+	                                                                                        # and put it to the AzureStackTotalCost-$CURRENT_MONTH.txt gile 
 	
 	# here we zip this folder to prepare uploat to the Azure Stack Blob storage 
 	zip -r $FOLDERNAME.zip $FOLDERNAME
