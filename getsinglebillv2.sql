@@ -1,4 +1,21 @@
-DECLARE @tempbill TABLE (ForisCodeId varchar(15), UsageStartTime datetime, UsageEndTime datetime, SubscriptionId uniqueidentifier, MeterId uniqueidentifier, ResourceId nvarchar(255) , Quantity real, Price numeric(9,4), Cost real)
+DECLARE @tempbill TABLE (ForisCodeId varchar(15), 
+						 UsageStartTime datetime,
+						 UsageEndTime datetime, 
+						 SubscriptionId uniqueidentifier, 
+						 MeterId uniqueidentifier,
+						 MeterName nchar(50),
+						 Category varchar(25),
+						 MeterDesc  nchar(50),
+						 Info1 nvarchar(255),
+						 ResourceId nvarchar(255), 
+						 Quantity real,
+						 [GPL Price] numeric(9,4),
+						 [Base Cost] real,
+						 [Personal Discont] varchar(10),
+						 [Final Cost] real
+						 )
+
+
 DECLARE @CustomerName nvarchar(255)
 set @CustomerName = (select DisplayName from dbo.v_Subscriptions where SubscriptionId = '$(BILL_SUBSCRIPTION_ID)' )
 INSERT INTO @tempbill
@@ -8,9 +25,9 @@ SELECT
       ,su.[UsageEndTime]
       ,c.[ForisCodeId]
       ,su.[SubscriptionId]
- /*     ,su.[MeterId] */
+      ,su.[MeterId]
 	  ,meters.[MeterName]
-/*    ,p.Category */
+      ,p.Category 
 	  ,d.[MeterDesc]
 	  ,su.[Info1]
 	  ,su.[ResourceId]
@@ -82,11 +99,14 @@ select /*top (5)*/
       ,UsageStartTime
       ,UsageEndTime
       ,SubscriptionId
-      ,MeterId
+      ,MeterName
+	  ,MeterDesc
       ,ResourceId
       ,format(Quantity,'N16','de-de') as Quantity
-      ,format(Price,'N7','de-de') as Price
-      ,format(Cost,'N16','de-de') as Cost
+      ,format([GPL Price],'N7','de-de') as [GPL Price]
+      ,format([Base Cost],'N16','de-de') as [Base Cost]
+	  ,[Personal Discont]
+	  ,format([Final Cost],'N16','de-de') as [Final Cost]
 	
 from @tempbill
 order by UsageStartTime
