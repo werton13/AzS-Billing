@@ -1,3 +1,5 @@
+# Version 7.4
+Added FOrisCodeID to the summary for  each Tenant and to the  Overal summary
 # Version 7.2
 New columns with Disconts and additional metrics info
 # Version 7.1
