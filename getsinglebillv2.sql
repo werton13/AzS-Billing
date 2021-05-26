@@ -100,6 +100,7 @@ select /*top (5)*/
       ,SubscriptionId
       ,MeterName
 	  ,MeterDesc
+	  ,Info1
       ,ResourceId
       ,format(Quantity,'N16','de-de') as Quantity
       ,format([GPL Price],'N7','de-de') as 'GPL Price'
