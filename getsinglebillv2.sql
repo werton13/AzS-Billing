@@ -95,13 +95,13 @@ DEALLOCATE  index_umeters
 
 select /*top (5)*/
        ForisCodeId
+	  ,SubscriptionId
       ,UsageStartTime
       ,UsageEndTime
-      ,SubscriptionId
       ,MeterName
 	  ,MeterDesc
+	  ,ResourceId
 	  ,Info1
-      ,ResourceId
       ,format(Quantity,'N16','de-de') as Quantity
       ,format([GPL Price],'N7','de-de') as 'GPL Price'
       ,format([Base Cost],'N16','de-de') as 'Base Cost'
