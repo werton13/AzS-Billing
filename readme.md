@@ -1,4 +1,8 @@
-# Version 7.0
+# Version 7.4
+Added FOrisCodeID to the summary for  each Tenant and to the  Overal summary
+# Version 7.2
+New columns with Disconts and additional metrics info
+# Version 7.1
 Test commit to the billing_dev branch
 
 # Version 6.3
