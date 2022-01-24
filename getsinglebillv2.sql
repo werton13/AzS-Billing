@@ -18,55 +18,113 @@ DECLARE @tempbill TABLE (ForisCodeId varchar(15),
 
 DECLARE @CustomerName nvarchar(255)
 set @CustomerName = (select DisplayName from dbo.v_Subscriptions where SubscriptionId = '$(BILL_SUBSCRIPTION_ID)' )
-INSERT INTO @tempbill
-SELECT 
-       c.[ForisCodeId] /*this column should ne first*/
-      ,su.[UsageStartTime]
-      ,su.[UsageEndTime]
-      ,su.[SubscriptionId]
-      ,su.[MeterId]
-	  ,meters.[MeterName]
-      ,p.Category 
-	  ,d.[MeterDesc]
-	  ,su.[Info1]
-	  ,su.[ResourceId]
-      ,su.[Quantity] as Quantity
-      ,p.[PricePerUnit] as 'GPL Price'
-	  ,su.Quantity*p.PricePerUnit as 'Base Cost'
+DECLARE @RegionName nchar(50);
+set @RegionName = ( select top (1) [location]   FROM  [azuremsk-billing].[dbo].[SubscriberUsage]   where SubscriptionId = '$(BILL_SUBSCRIPTION_ID)' )
+
+/*INSERT INTO @tempbill*/
+IF	@RegionName IN ('MSKEast','MSKNorth')
+	BEGIN
+		INSERT INTO @tempbill
+		    SELECT 
+             c.[ForisCodeId] /*this column should ne first*/
+            ,su.[UsageStartTime]
+            ,su.[UsageEndTime]
+            ,su.[SubscriptionId]
+            ,su.[MeterId]
+	        ,meters.[MeterName]
+            ,p.Category 
+	        ,d.[MeterDesc]
+	        ,su.[Info1]
+	        ,su.[ResourceId]
+            ,su.[Quantity] as Quantity
+            ,p.[PricePerUnit] as 'GPL Price'
+	        ,su.Quantity*p.PricePerUnit as 'Base Cost'
 	/*Here we comparing dbo.v_Prices category column with all hardcoded categorys and if match - we compute a 'Personal Discont' column value here as varchar  */  
-	  ,(case 
-			 when p.category like 'Compute' then ( CONVERT(varchar(10),(select (1 -(select [compute] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
-			 when p.category like 'Storage' then ( CONVERT(varchar(10),(select (1 -(select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
-			 when p.category like 'WebApp'  then ( CONVERT(varchar(10),(select (1 -(select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'  )									    
-			 when p.category like 'EventHubs'  then ( CONVERT(varchar(10),(select (1 -(select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
-			 when p.category like 'Database'  then ( CONVERT(varchar(10),(select (1 -(select [Database] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
-			 when p.category like 'IP Address'  then ( CONVERT(varchar(10),(select (1 -(select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
-		end ) as 'Personal Discont'
+	        ,(case 
+	  	    	 when p.category like 'Compute' then ( CONVERT(varchar(10),(select (1 -(select [compute] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	  	    	 when p.category like 'Storage' then ( CONVERT(varchar(10),(select (1 -(select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	  	    	 when p.category like 'WebApp'  then ( CONVERT(varchar(10),(select (1 -(select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'  )									    
+	  	    	 when p.category like 'EventHubs'  then ( CONVERT(varchar(10),(select (1 -(select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	  	    	 when p.category like 'Database'  then ( CONVERT(varchar(10),(select (1 -(select [Database] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	  	    	 when p.category like 'IP Address'  then ( CONVERT(varchar(10),(select (1 -(select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	  	    end ) as 'Personal Discont'
 	/*Here we comparing dbo.v_Prices category column with all hardcoded categorys and if match - we compute a 'Personal Discont' * Price*Quantity as a Final Cost after Discont  */  
-    
-    ,(case 
-			 when p.category like 'Compute' then ( 	(select (select [compute] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
-			 when p.category like 'Storage' then (  (select (select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
-			 when p.category like 'WebApp'  then (	(select (select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )									    
-			 when p.category like 'EventHubs'  then ( (select (select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
-             when p.category like 'Database'  then ( (select (select [Database] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
-			 when p.category like 'IP Address'  then ( (select (select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
-	 end ) as 'Final Cost'
+
+            ,(case 
+	        		 when p.category like 'Compute' then ( 	(select (select [compute] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+	        		 when p.category like 'Storage' then (  (select (select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+	        		 when p.category like 'WebApp'  then (	(select (select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )									    
+	        		 when p.category like 'EventHubs'  then ( (select (select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
+                     when p.category like 'Database'  then ( (select (select [Database] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+	        		 when p.category like 'IP Address'  then ( (select (select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
+	         end ) as 'Final Cost'
+
+	        from dbo.v_SubscriberUsage su
+
+	        join dbo.v_PricesGen2 p on su.MeterName = p.MeterName and su.Info1 = p.Counter /*join dbo.v_Prices to extend table with Prices by SKU */
+	        join dbo.v_ForisClients c on su.SubscriptionId = c.SubscriptionId          /*join dbo.v_ForisClients to extend table with ForisClients */
+	        join dbo.v_Meters meters on su.MeterId = meters.MeterId                    /*join dbo.v_Meters to extend table with MeterNames */
+	        join dbo.v_MetersInfo d on meters.metername = d.MeterName                  /*join dbo.v_MetersInfo  to extend table with additional info about SKU-s*/
+	        join dbo.v_Disconts Discont on c.ForisCodeId = Discont.ForisCodeId         /*join dbo.v_Disconrs  to extend table with additional info about Disconts*/
 
 
+	        where su.[SubscriptionId] = '$(BILL_SUBSCRIPTION_ID)'
+	        and su.MeterId NOT IN ('7ba084ec-ef9c-4d64-a179-7732c6cb5e28','108fa95b-be0d-4cd9-96e8-5b0d59505df1','daef389a-06e5-4684-a7f7-8813d9f792d5','578ae51d-4ef9-42f9-85ae-42b52d3d83ac') 
+	        and su.UsageStartTime >= '$(START_BILL_DATE)'
+	        and su.UsageEndTime <= '$(END_BILL_DATE)'
+	END
+ELSE
+	BEGIN
+	     INSERT INTO @tempbill
+	        SELECT 
+                 c.[ForisCodeId] /*this column should be first*/
+                ,su.[UsageStartTime]
+                ,su.[UsageEndTime]
+                ,su.[SubscriptionId]
+                ,su.[MeterId]
+	            ,meters.[MeterName]
+                ,p.Category 
+	            ,d.[MeterDesc]
+	            ,su.[Info1]
+	            ,su.[ResourceId]
+                ,su.[Quantity] as Quantity
+                ,p.[PricePerUnit] as 'GPL Price'
+	            ,su.Quantity*p.PricePerUnit as 'Base Cost'
+	     /*     Here we comparing dbo.v_Prices category column with all hardcoded categorys and if match - we compute a 'Personal Discont' column value here as varchar  */  
+	            ,(case 
+	     	        	 when p.category like 'Compute' then ( CONVERT(varchar(10),(select (1 -(select [compute] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	     	        	 when p.category like 'Storage' then ( CONVERT(varchar(10),(select (1 -(select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	     	        	 when p.category like 'WebApp'  then ( CONVERT(varchar(10),(select (1 -(select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %'  )									    
+	     	        	 when p.category like 'EventHubs'  then ( CONVERT(varchar(10),(select (1 -(select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	     	        	 when p.category like 'Database'  then ( CONVERT(varchar(10),(select (1 -(select [Database] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	     	        	 when p.category like 'IP Address'  then ( CONVERT(varchar(10),(select (1 -(select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId))*100) ) + ' %' )
+	     	     end ) as 'Personal Discont'
+	     /*Here we comparing dbo.v_Prices category column with all hardcoded categorys and if match - we compute a 'Personal Discont' * Price*Quantity as a Final Cost after Discont  */  
+         
+                ,(case 
+	            		 when p.category like 'Compute' then ( 	(select (select [compute] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+	            		 when p.category like 'Storage' then (  (select (select [Storage] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+	            		 when p.category like 'WebApp'  then (	(select (select [WebApp] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )									    
+	            		 when p.category like 'EventHubs'  then ( (select (select [EventHubs] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
+                         when p.category like 'Database'  then ( (select (select [Database] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  )  )
+	            		 when p.category like 'IP Address'  then ( (select (select [IP Address] from Disconts where ForisCodeId  = c.ForisCodeId)*su.Quantity*p.PricePerUnit  ) )
+	             end ) as 'Final Cost'
 
-from dbo.v_SubscriberUsage su
-join dbo.v_Prices p on su.MeterName = p.MeterName and su.Info1 = p.Counter /*join dbo.v_Prices to extend table with Prices by SKU */
-join dbo.v_ForisClients c on su.SubscriptionId = c.SubscriptionId          /*join dbo.v_ForisClients to extend table with ForisClients */
-join dbo.v_Meters meters on su.MeterId = meters.MeterId                    /*join dbo.v_Meters to extend table with MeterNames */
-join dbo.v_MetersInfo d on meters.metername = d.MeterName                  /*join dbo.v_MetersInfo  to extend table with additional info about SKU-s*/
-join dbo.v_Disconts Discont on c.ForisCodeId = Discont.ForisCodeId         /*join dbo.v_Disconrs  to extend table with additional info about Disconts*/
+                from dbo.v_SubscriberUsage su
+
+                join dbo.v_Prices p on su.MeterName = p.MeterName and su.Info1 = p.Counter /*join dbo.v_Prices to extend table with Prices by SKU */
+                join dbo.v_ForisClients c on su.SubscriptionId = c.SubscriptionId          /*join dbo.v_ForisClients to extend table with ForisClients */
+                join dbo.v_Meters meters on su.MeterId = meters.MeterId                    /*join dbo.v_Meters to extend table with MeterNames */
+                join dbo.v_MetersInfo d on meters.metername = d.MeterName                  /*join dbo.v_MetersInfo  to extend table with additional info about SKU-s*/
+                join dbo.v_Disconts Discont on c.ForisCodeId = Discont.ForisCodeId         /*join dbo.v_Disconrs  to extend table with additional info about Disconts*/
 
 
-where su.[SubscriptionId] = '$(BILL_SUBSCRIPTION_ID)'
-and su.MeterId NOT IN ('7ba084ec-ef9c-4d64-a179-7732c6cb5e28','108fa95b-be0d-4cd9-96e8-5b0d59505df1','daef389a-06e5-4684-a7f7-8813d9f792d5','578ae51d-4ef9-42f9-85ae-42b52d3d83ac') 
-and su.UsageStartTime >= '$(START_BILL_DATE)'
-and su.UsageEndTime <= '$(END_BILL_DATE)'
+                where su.[SubscriptionId] = '$(BILL_SUBSCRIPTION_ID)'
+                and su.MeterId NOT IN ('7ba084ec-ef9c-4d64-a179-7732c6cb5e28','108fa95b-be0d-4cd9-96e8-5b0d59505df1','daef389a-06e5-4684-a7f7-8813d9f792d5','578ae51d-4ef9-42f9-85ae-42b52d3d83ac') 
+                and su.UsageStartTime >= '$(START_BILL_DATE)'
+                and su.UsageEndTime <= '$(END_BILL_DATE)'
+	END
+
 
 select 'Bill Period from: '+ CONVERT(varchar(12), MIN(UsageStartTime)) +' till: ' + CONVERT(varchar(12),MAX(UsageEndTime))  from @tempbill 
 select 'Total usage cost for: ' + @CustomerName +' [ForisCode:'+ (select DISTINCT (ForisCodeId) from @tempbill) +'] : '+ CONVERT(varchar(12), sum([Final Cost]))+ ' Rub' from @tempbill
@@ -110,4 +168,3 @@ select /*top (5)*/
 	
 from @tempbill
 order by UsageStartTime
-
