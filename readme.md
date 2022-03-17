@@ -1,3 +1,5 @@
+# Version 7.5
+Added PricesGen2 support for specific regions
 # Version 7.4
 Added FOrisCodeID to the summary for  each Tenant and to the  Overal summary
 # Version 7.2
