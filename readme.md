@@ -1,5 +1,5 @@
 # Version 7.6
-Fixing incorrect totalcost calculation
+Fixing incorrect totalcost calculation.
 # Version 7.5
 Added PricesGen2 support for specific regions
 # Version 7.4
